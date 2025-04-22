@@ -1,4 +1,5 @@
 import { userModel } from "../models/user.js";
+import { mailTransporter, registerUserMailTemplate } from "../utils/mail.js";
 import { loginUserValidator, registerUserValidator, updateUserValidator } from "../validators/user.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken"
@@ -28,6 +29,12 @@ export const registerUser = async (req, res, next) => {
     password: hashedPassword
   });
   //send registration email to user 
+  await mailTransporter.sendMail({
+    from: 'dorcasnquaye28@gmail.com',
+    to: value.email,
+    subject: 'Checking out Nodemailer',
+    html: registerUserMailTemplate.replace('{{username}}', value.username)
+  })
   //(Optionally generate access token for user)
   //Return response
   res.status(201).json('User registered successfully')
@@ -97,8 +104,8 @@ export const updateUser = async (req, res, next) => {
 export const getAuthenticatedUser = async (req, res, next) => {
   //Get user by id using req.auth.id
   const result = await userModel
-  .findById(req.auth.id)
-  .select({password:false});
+    .findById(req.auth.id)
+    .select({ password: false });
   //return response
   res.status(200).json(result)
 }
